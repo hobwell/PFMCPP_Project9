@@ -25,12 +25,6 @@ struct Point
 {
     Point (float _x, float _y) : x (_x), y (_y) {}
 
-    Point (Point&& other) 
-    { 
-        x = other.x;
-        y = other.y;
-    }
-
     Point& multiply (float m)
     {
         x *= m;
@@ -74,20 +68,10 @@ struct Wrapper
 };
 
 template<>
-struct Wrapper<Point>
+void Wrapper<Point>::print() const
 {
-    Wrapper(Point&& p) : val (std::forward<Point>(p)) 
-    { 
-        std::cout << "Wrapper<Point>(" << typeid (val).name() << ")" << std::endl;
-    }
-
-    void print() const
-    {
-       std::cout << "Wrapper<Point>::print(" << val.toString() << ")" << std::endl;   
-    }
-
-    Point val;
-};
+   std::cout << "Wrapper<Point>::print(" << val.toString() << ")" << std::endl;   
+}
 
 // Deduction Guide
 template <typename T>
@@ -117,14 +101,14 @@ void variadicHelper (T&& first, Args&& ... remainingArgs)
     
 }
 
-template<typename T>
-void variadicHelper (T&& only)
-{
-    Wrapper (std::forward<T> (only)).print();
+void variadicHelper () 
+{ 
+    std::cout << "Nothing to see here." << std::endl;
 }
 
 int main()
 {
+    variadicHelper ();
     variadicHelper (3, std::string ("burgers"), 2.5, Point{3.f, 0.14f});
 }
 
