@@ -50,15 +50,22 @@ private:
 template<typename Type>
 struct Wrapper
 {
-    Wrapper (Type&& t) : val (std::forward<Type> (t)) 
+    Wrapper (Type&& t) : val (std::move (t)) 
     { 
         std::cout << "Wrapper(" << typeid (val).name() << ")" << std::endl;
     }
 
+    // 5) add a print() function to the Wrapper stub.
+    // if the first parameter of variadicHelper is a double with a value of 3.5, the print() function should print out: 
+    // "Wrapper::print(3.5)"
+    // (Note, there are no other instructions indicating what print should do)
     void print() const
     {
+
+        // the first parameter of the variadic helper will be the same as Type, given how Wrapper is constructed, so we can check here if it is a double
         if constexpr (std::is_same<double, Type>::value)
         {
+            // then check if it is 3.5
             if (val == 3.5)
                 std::cout << "Wrapper::print(" << val << ")" << std::endl;
         }
@@ -72,10 +79,6 @@ void Wrapper<Point>::print() const
 {
    std::cout << "Wrapper<Point>::print(" << val.toString() << ")" << std::endl;   
 }
-
-// Deduction Guide
-template <typename T>
-Wrapper(T&&) -> Wrapper<T>;
     
 /*
  MAKE SURE YOU ARE NOT ON THE MASTER BRANCH
@@ -108,7 +111,6 @@ void variadicHelper ()
 
 int main()
 {
-    variadicHelper ();
     variadicHelper (3, std::string ("burgers"), 2.5, Point{3.f, 0.14f});
 }
 
