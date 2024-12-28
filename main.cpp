@@ -55,25 +55,18 @@ struct Wrapper
         std::cout << "Wrapper(" << typeid (val).name() << ")" << std::endl;
     }
 
-    // 5) add a print() function to the Wrapper stub.
-    // if the first parameter of variadicHelper is a double with a value of 3.5, the print() function should print out: 
-    // "Wrapper::print(3.5)"
-    // (Note, there are no other instructions indicating what print should do)
+    // Step 5
     void print() const
     {
-
-        // the first parameter of the variadic helper will be the same as Type, given how Wrapper is constructed, so we can check here if it is a double
-        if constexpr (std::is_same<double, Type>::value)
-        {
-            // then check if it is 3.5
-            if (val == 3.5)
-                std::cout << "Wrapper::print(" << val << ")" << std::endl;
-        }
+        std::cout << "Wrapper::print(" << val << ")" << std::endl;
     }
 
     Type val;
 };
 
+// Step 8
+// Challenge 1
+// I specialized the Wrapper class template to work with the Point class by adding the following specialization
 template<>
 void Wrapper<Point>::print() const
 {
@@ -94,24 +87,72 @@ void Wrapper<Point>::print() const
  Wait for my code review.
  */
 
-template<typename T, typename ...Args>
-void variadicHelper (T&& first, Args&& ... remainingArgs)
-{
-    Wrapper (std::forward<T> (first)).print();
-    
-    if constexpr (sizeof ... (remainingArgs) > 0)
-        variadicHelper (std::forward<Args> (remainingArgs) ...);
-    
-}
+/*
+Challenge 2
+I believe the existance of this method ensures that the recursive variadic template
+function will exit when the parameter pack is empty 
 
+it must be declared before the variadic template or the project will not compile due 
+to an error: 
+
+call to function 'variadicHelper' that is neither visible in the template definition nor found by argument-dependent lookup
+*/
 void variadicHelper () 
 { 
     std::cout << "Nothing to see here." << std::endl;
 }
 
+template<typename T, typename ...Args>
+void variadicHelper (T&& first, Args&& ... remainingArgs)
+{
+    // Step 6 & 9
+    Wrapper (std::forward<T> (first)).print();
+
+    // Step 7 & 9
+    variadicHelper (std::forward<Args> (remainingArgs) ...);    
+}
+
+/* 
+Challenge 2:
+There is another recursive solution. it is possible for Args ... to be empty.
+your task: remove your implementation for instruction 4) and implement this alternate solution.
+implement it after your existing variadicHelper function.
+
+
+hobwell: I had to be define it before the variadicHelper function, see above
+
+hint: what does the recursive call actually look like when called with an empty Variadic Parameter list
+
+hobwell: it looks like a call to a function with no arguments:
+
+#ifdef INSIGHTS_USE_TEMPLATE
+template<>
+void variadicHelper<>()
+{
+  std::operator<<(std::cout, "Nothing to see here.").operator<<(std::endl);
+}
+#endif
+
+hobwell:  my thought was that the solution was to provide an overload that takes no
+arguments so that the other variadic function will call it when remainingArgs is empty.
+
+*/
 int main()
 {
     variadicHelper (3, std::string ("burgers"), 2.5, Point{3.f, 0.14f});
 }
 
+/*
+hobwell: I have no idea why the warnings are being generated:  
+main.cpp:101:5: warning: 'Wrapper' may not intend to support class template argument deduction [-Wctad-maybe-unsupported]
 
+They seem to stem from line 143, where the helper is being called with rvalues, which is what the template is looking for.
+
+If I examine this code on cppinsights, the variadic template appears to unroll as I would expect it to.
+
+Adding the deduction guide below clears the warnings
+*/
+/*
+template <typename T>
+Wrapper(T&&) -> Wrapper<T>;
+*/
