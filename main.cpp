@@ -23,23 +23,26 @@ Make the following program work, which makes use of Variadic templates and Recur
 
 struct Point
 {
-    Point(float _x, float _y) : x(_x), y(_y) { }
-    Point& multiply(float m)
+    Point (float _x, float _y) : x (_x), y (_y) {}
+
+    Point& multiply (float m)
     {
         x *= m;
         y *= m;
         return *this;
     }
+
     std::string toString() const
     {
         std::string str;
         str +="Point { x: ";
-        str += std::to_string(x);
+        str += std::to_string (x);
         str += ", y: ";
-        str += std::to_string(y);
+        str += std::to_string (y);
         str += " }";
         return str;
     }
+
 private:
     float x{0}, y{0};
 };
@@ -47,12 +50,25 @@ private:
 template<typename Type>
 struct Wrapper
 {
-    Wrapper(Type&& t) : val(std::move(t)) 
+    Wrapper (Type&& t) : val (std::move (t)) 
     { 
-        std::cout << "Wrapper(" << typeid(val).name() << ")" << std::endl; 
+        std::cout << "Wrapper(" << typeid (val).name() << ")" << std::endl;
     }
+
+    void print() const
+    {
+        std::cout << "Wrapper::print(" << val << ")" << std::endl;
+    }
+
+    Type val;
 };
 
+template<>
+void Wrapper<Point>::print() const
+{
+   std::cout << "Wrapper<Point>::print(" << val.toString() << ")" << std::endl;   
+}
+    
 /*
  MAKE SURE YOU ARE NOT ON THE MASTER BRANCH
 
@@ -67,9 +83,23 @@ struct Wrapper
  Wait for my code review.
  */
 
-int main()
+// fowrad declare method
+void variadicHelper();
+
+template<typename T, typename ...Args>
+void variadicHelper (T&& first, Args&& ... remainingArgs)
 {
-    variadicHelper( 3, std::string("burgers"), 2.5, Point{3.f, 0.14f} );
+    Wrapper<T> (std::forward<T> (first)).print();
+
+    variadicHelper (std::forward<Args> (remainingArgs) ...);    
 }
 
+void variadicHelper () 
+{ 
+    std::cout << "Nothing to see here." << std::endl;
+}
 
+int main()
+{
+    variadicHelper (3, std::string ("burgers"), 2.5, Point{3.f, 0.14f});
+}
